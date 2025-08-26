@@ -1,31 +1,39 @@
-# This is a basic workflow to help you get started with Actions
 
+# github ci pipeline to push code into remote host using ftp
 name: CI
 
-# Controls when the workflow will run
 on:
-  # Triggers the workflow on push or pull request events but only for the "main" branch
   push:
     branches: [ "main" ]
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+# auto set dir name same as github repo name
+env:
+  FTP_TARGET_DIR: ${{ github.event.repository.name }
+
 jobs:
-  # This workflow contains a single job called "build"
-  build:
-    # The type of runner that the job will run on
+  deploy:
     runs-on: ubuntu-latest
-
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v4
+      - name: Checkout Github repo to runner
+        uses: actions/checkout@v4
 
-      # Runs a single command using the runners shell
-      - name: Run a one-line script
-        run: echo Hello, world!
+      - name: Install lftp
+        run: sudo apt install lftp -y
 
-      # Runs a set of commands using the runners shell
-      - name: Run a multi-line script
+      - name: Upload via lftp (incremental, no delete)
+        env:
+          REMOTE_USER: ${{ secrets.REMOTE_USER }}
+          REMOTE_PASSWORD: ${{ secrets.REMOTE_PASSWORD }}
+          REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
         run: |
-          echo Add other actions to build,
-          echo test, and deploy your project.
+            lftp -u "$REMOTE_USER","$REMOTE_PASSWORD" "$REMOTE_HOST" -e "mirror -R --verbose --exclude .git --exclude .env ./ $FTP_TARGET_DIR; bye"
+
+# ---- Pick which step to run
+
+      # - name: Upload via lftp (complete sync, will delete unnecessary remote files)
+      #   env:
+      #     REMOTE_USER: ${{ secrets.REMOTE_USER }}
+      #     REMOTE_PASSWORD: ${{ secrets.REMOTE_PASSWORD }}
+      #     REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
+      #   run: |
+      #       lftp -u "$REMOTE_USER","$REMOTE_PASSWORD" "$REMOTE_HOST" -e "mirror -R --delete --verbose --exclude .git --exclude .env ./ $FTP_TARGET_DIR; bye"
