@@ -1,6 +1,6 @@
 
 # github ci pipeline to push code into remote host using ftp
-# github ci pipeline to push code into remote host using ftp
+
 name: CI
 
 on:
