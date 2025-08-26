@@ -9,7 +9,7 @@ on:
 
 # auto set dir name same as github repo name
 env:
-  FTP_TARGET_DIR: "ftp_folder/${{ github.event.repository.name }}"
+  FTP_TARGET_DIR: "demo/${{ github.event.repository.name }}"
 
 jobs:
   deploy:
